@@ -12,11 +12,16 @@ import { WhatsAppCta } from "@/components/sections/whatsapp-cta";
 import { getSiteContent } from "@/lib/content/get-content";
 import { bakeryJsonLd } from "@/lib/structured-data";
 
-/** Al recargar, siempre arranca arriba: sin restaurar el scroll ni saltar al #ancla de la URL. */
+/**
+ * Al recargar, siempre arranca arriba (sin restaurar el scroll ni saltar al #ancla).
+ * Un link compartido con #ancla es una visita nueva y sí va a esa sección.
+ */
 const startAtTopScript = `
 history.scrollRestoration = "manual";
-if (location.hash) history.replaceState(null, "", location.pathname + location.search);
-window.scrollTo(0, 0);
+if (performance.getEntriesByType("navigation")[0]?.type === "reload") {
+  if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  window.scrollTo(0, 0);
+}
 `;
 
 export default async function HomePage() {
