@@ -1,8 +1,9 @@
 import { business } from "@/data/business";
+import type { SiteContent } from "@/lib/content/types";
 import { siteUrl } from "@/lib/site";
 
-export function bakeryJsonLd() {
-  const { location, hours } = business;
+export function bakeryJsonLd(content: SiteContent) {
+  const { location } = content.contact;
 
   return {
     "@context": "https://schema.org",
@@ -10,25 +11,18 @@ export function bakeryJsonLd() {
     name: business.name,
     description: business.description,
     url: siteUrl,
+    image: content.hero.image.src,
     telephone: `+${business.whatsapp.number}`,
     sameAs: [business.instagram.url],
     ...(location && {
       address: {
         "@type": "PostalAddress",
-        streetAddress: location.streetAddress,
+        ...(location.address && { streetAddress: location.address }),
         addressLocality: location.city,
         addressRegion: location.region,
-        postalCode: location.postalCode,
-        addressCountry: location.country,
+        addressCountry: "AR",
       },
-    }),
-    ...(hours.length > 0 && {
-      openingHoursSpecification: hours.map((entry) => ({
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: entry.schemaDays,
-        opens: entry.opens,
-        closes: entry.closes,
-      })),
+      ...(location.mapsUrl && { hasMap: location.mapsUrl }),
     }),
   };
 }

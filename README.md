@@ -1,8 +1,8 @@
 # CB Pastelera — sitio web
 
-Sitio one-page para **CB Pastelera** (pastelería artesanal). Muestra productos, galería e información de contacto, y lleva las consultas a WhatsApp.
+Sitio one-page para **CB Pastelera** (pastelería artesanal) con **panel de administración** en `/admin`, desde el que la dueña edita textos, productos, categorías y fotos, también desde el celular.
 
-**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Motion · Lucide · `next/image` · `next/font`
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Motion · Supabase (Auth, Postgres y Storage) · Vercel
 
 ## Uso
 
@@ -15,53 +15,66 @@ npm run lint
 npm run typecheck
 ```
 
-Requiere Node.js 20.9 o superior.
+Requiere Node.js 20.9 o superior. Sin Supabase configurado, el sitio funciona con el contenido inicial de `data/` y `/admin` se abre en modo vista previa (solo en desarrollo, sin guardar).
 
-## Deploy en Vercel
+## Configurar Supabase (una sola vez)
 
-1. Subir el repositorio a GitHub.
-2. En Vercel: **Add New → Project** e importar el repositorio. No hace falta configuración extra.
-3. (Opcional) Definir `NEXT_PUBLIC_SITE_URL` con el dominio definitivo (ver `.env.example`). Se usa para canonical, Open Graph y sitemap. Si no se define, se usa el dominio de producción de Vercel.
+1. Crear un proyecto en [supabase.com](https://supabase.com).
+2. **SQL Editor → New query**: pegar el contenido de [`supabase/schema.sql`](supabase/schema.sql) y ejecutarlo. Crea la tabla del contenido, la tabla de administradores, el bucket de fotos `site-images` y las reglas de seguridad (RLS).
+3. **Authentication → Sign In / Providers → Email**: desactivar **Allow new users to sign up**, para que nadie más pueda crearse una cuenta.
+4. **Authentication → Users → Add user**: crear el usuario de la dueña (email y contraseña, con *Auto Confirm User*).
+5. Darle permisos de edición, en el SQL Editor:
+   ```sql
+   insert into public.admins (user_id)
+   select id from auth.users where email = 'email-de-la-duena@ejemplo.com';
+   ```
+6. **Project Settings → API**: copiar la *Project URL* y la clave *anon public* (o *publishable*) en las variables de entorno:
+   - Local: copiar `.env.example` a `.env.local` y completar.
+   - Vercel: **Settings → Environment Variables**, y después **Redeploy**.
 
-## Dónde editar el contenido
+| Variable | Valor |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anon/publishable (nunca la `service_role`/secret) |
+| `NEXT_PUBLIC_SITE_URL` | Opcional: dominio definitivo |
 
-Todo el contenido está en `data/`, separado de los componentes:
+## Panel de administración
+
+`https://tu-dominio/admin` → iniciar sesión con el usuario de la dueña.
+
+- Secciones: Portada, Propuesta, Productos (categorías y productos), Galería, Nosotros, Pedidos, Instagram y Contacto (incluida la ubicación).
+- Las fotos se eligen desde la galería o la cámara del celular, se comprimen en el navegador (máx. 2000 px, WebP) y se suben a Supabase Storage.
+- **Guardar cambios** actualiza el sitio publicado al instante.
+- La primera vez que se guarda, el contenido inicial de `data/` pasa a Supabase. Desde ese momento, lo que manda es lo guardado en el panel.
+
+**Instagram:** Instagram no permite mostrar el feed sin su API oficial (requiere cuenta profesional y un token de Meta). Por eso la dueña sube las fotos de sus publicaciones desde el panel y, si quiere, pega el link de cada post.
+
+## Contenido inicial y datos fijos
 
 | Archivo | Contenido |
 | --- | --- |
-| `data/business.ts` | Nombre, WhatsApp, Instagram, ubicación, horarios, links del menú y el aviso de demo |
-| `data/products.ts` | Productos: nombre, categoría, descripción, imagen y precio |
-| `data/categories.ts` | Categorías. En el filtro solo aparecen las que tienen productos |
-| `data/gallery.ts` | Fotos de la galería y de la sección Instagram |
-| `data/content.ts` | Textos de las secciones (hero, propuesta, nosotros, CTA, contacto) |
+| `data/business.ts` | Nombre, WhatsApp, Instagram, links del menú y créditos (no se editan desde el panel) |
+| `data/default-content.ts` | Textos y fotos iniciales de cada sección |
+| `data/products.ts`, `data/categories.ts`, `data/gallery.ts` | Productos, categorías y fotos iniciales |
 
-### Contenido provisorio
-
-Esta versión es una **demo**: los productos, textos y fotos son de ejemplo.
-
-- **Fotos:** son imágenes de referencia de Unsplash (función `tempPhoto`) y **no pertenecen a CB Pastelera**. Para reemplazarlas, guardar las fotos reales en `public/images/products`, `public/images/gallery`, `public/images/hero` o `public/images/about`, y usar la ruta local:
-  ```ts
-  image: { src: "/images/products/torta-chocolate.webp", alt: "Torta de chocolate con ganache" }
-  ```
-  Recomendado: WebP o JPG, de 1600–2000 px en el lado mayor. `next/image` genera automáticamente los tamaños optimizados.
-- **Precios:** `price: null` muestra solo el botón "Consultar". Con un número (ej. `price: 25000`) se muestra el precio en pesos.
-- **Horarios:** con `hours: []` se muestra "Horarios a confirmar". Hay un ejemplo comentado en `data/business.ts`.
-- **Ubicación:** con `location: null` no se muestra. Al completarla también se agrega a los datos estructurados para SEO local (schema.org `Bakery`).
-- **Aviso de demo:** con `showDemoNotice: false` en `data/business.ts` se ocultan las marcas de "contenido de ejemplo" y el aviso del footer. Hacerlo recién cuando se haya cargado el contenido real.
-
-Cuando todas las fotos sean locales se puede quitar `images.unsplash.com` de `next.config.ts`.
+Las fotos iniciales son imágenes de referencia de Unsplash y no pertenecen a CB Pastelera: se reemplazan desde el panel.
 
 ## Estructura
 
 ```
-app/            layout, página, estilos globales, SEO (OG image, icons, robots, sitemap)
+app/               página, SEO, /admin (panel, login y server actions)
 components/
-  layout/       navbar, menú mobile, footer, botón flotante de WhatsApp
-  sections/     secciones de la página
-  ui/           piezas reutilizables (botones, encabezados, lightbox, animaciones)
-data/           contenido editable
-lib/            helpers (links de WhatsApp, formato de precios, datos estructurados, hooks)
-public/images/  fotos reales (products, gallery, hero, about)
+  admin/           editor del panel
+  layout/          navbar, menú mobile, footer, botón de WhatsApp
+  sections/        secciones del sitio
+  ui/              piezas reutilizables
+data/              datos fijos y contenido inicial
+lib/
+  content/         tipos, validación y lectura del contenido
+  supabase/        clientes de Supabase
+  admin/           sesión, subida de fotos y helpers del panel
+proxy.ts           mantiene la sesión del panel
+supabase/          esquema SQL
 ```
 
-Sitio desarrollado por Infinity Code.
+Sitio desarrollado por [Enzo Dalmasso](https://porfolio-enzo-dalmasso.vercel.app/) - [Infinity Code](https://web-coorporativa-infinity-code.vercel.app/).

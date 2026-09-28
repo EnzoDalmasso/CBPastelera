@@ -1,40 +1,27 @@
-import { ArrowUpRight, Clock, MapPin, MessageCircle, type LucideIcon } from "lucide-react";
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import { ArrowUpRight, MapPin, MessageCircle, type LucideIcon } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
 import { InstagramIcon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { business } from "@/data/business";
-import { contactContent } from "@/data/content";
+import type { SiteContent } from "@/lib/content/types";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 type ContactItem = {
   label: string;
   icon: LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
-  value: ReactNode;
+  value: string;
   href?: string;
 };
 
-function contactItems(): ContactItem[] {
-  const { whatsapp, instagram, hours, location } = business;
-
+function contactItems(location: SiteContent["contact"]["location"]): ContactItem[] {
   const items: ContactItem[] = [
-    { label: "WhatsApp", icon: MessageCircle, value: whatsapp.display, href: whatsappUrl() },
-    { label: "Instagram", icon: InstagramIcon, value: `@${instagram.handle}`, href: instagram.url },
+    { label: "WhatsApp", icon: MessageCircle, value: business.whatsapp.display, href: whatsappUrl() },
     {
-      label: "Horarios",
-      icon: Clock,
-      value:
-        hours.length > 0 ? (
-          <span className="flex flex-col gap-1">
-            {hours.map((entry) => (
-              <span key={entry.label}>
-                {entry.label}: {entry.time}
-              </span>
-            ))}
-          </span>
-        ) : (
-          contactContent.hoursPlaceholder
-        ),
+      label: "Instagram",
+      icon: InstagramIcon,
+      value: `@${business.instagram.handle}`,
+      href: business.instagram.url,
     },
   ];
 
@@ -42,31 +29,31 @@ function contactItems(): ContactItem[] {
     items.push({
       label: "Ubicación",
       icon: MapPin,
-      value: [location.streetAddress, location.city, location.region].filter(Boolean).join(", "),
-      href: location.mapsUrl,
+      value: location.address ? `${location.address}, ${location.label}` : location.label,
+      href: location.mapsUrl || undefined,
     });
   }
 
   return items;
 }
 
-export function Contact() {
+export function Contact({ content }: { content: SiteContent["contact"] }) {
   return (
     <section id="contacto" aria-labelledby="contacto-title" className="section-space bg-cream-100">
       <div className="container-page grid gap-12 lg:grid-cols-12 lg:gap-10">
         <Reveal className="lg:col-span-5">
           <SectionHeading
             id="contacto-title"
-            eyebrow={contactContent.eyebrow}
-            title={contactContent.title}
-            text={contactContent.text}
+            eyebrow={content.eyebrow}
+            title={content.title}
+            text={content.text}
           />
         </Reveal>
 
         <Reveal delay={0.1} className="lg:col-span-6 lg:col-start-7">
           <p className="font-display text-2xl font-medium">{business.name}</p>
           <ul className="mt-4 border-t border-cocoa-900/10">
-            {contactItems().map((item) => (
+            {contactItems(content.location).map((item) => (
               <li key={item.label} className="border-b border-cocoa-900/10">
                 <ContactRow item={item} />
               </li>

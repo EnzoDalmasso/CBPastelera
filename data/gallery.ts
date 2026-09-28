@@ -1,10 +1,7 @@
 import { tempPhoto } from "@/lib/images";
 import type { ImageAsset } from "@/lib/types";
 
-/**
- * GALERÍA — fotos TEMPORALES de referencia.
- * Reemplazar por fotos reales en /public/images/gallery (ej: "/images/gallery/01.webp").
- */
+/** Fotos iniciales de la galería. Una vez configurado Supabase, se editan desde /admin. */
 export const galleryImages: ImageAsset[] = [
   tempPhoto("photo-1586985289906-406988974504", "Torta sobre una base de vidrio"),
   tempPhoto("photo-1606313564200-e75d5e30476c", "Chocolate derretido sobre brownies"),
@@ -14,7 +11,7 @@ export const galleryImages: ImageAsset[] = [
   tempPhoto("photo-1567171466295-4afa63d45416", "Torta con frutos rojos cortada en porciones"),
 ];
 
-/** Sección Instagram — reemplazar por fotos de publicaciones reales del perfil. */
+/** Fotos iniciales de la sección Instagram. La dueña las reemplaza desde /admin por fotos de su feed. */
 export const instagramImages: ImageAsset[] = [
   tempPhoto("photo-1603532648955-039310d9ed75", "Cupcake de chocolate con crema"),
   tempPhoto("photo-1670819916757-e8d5935a6c65", "Tartas de frutas"),

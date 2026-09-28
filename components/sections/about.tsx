@@ -1,11 +1,10 @@
 import Image from "next/image";
-import { DemoNote } from "@/components/ui/demo-note";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { aboutContent } from "@/data/content";
+import type { SiteContent } from "@/lib/content/types";
 
-export function About() {
-  const { eyebrow, title, paragraphs, signature, image, detailImage } = aboutContent;
+export function About({ content }: { content: SiteContent["about"] }) {
+  const { eyebrow, title, paragraphs, signature, image, detailImage } = content;
 
   return (
     <section id="nosotros" aria-labelledby="nosotros-title" className="section-space overflow-hidden bg-cream-100">
@@ -34,12 +33,11 @@ export function About() {
         <Reveal delay={0.1} className="lg:col-span-5 lg:col-start-8">
           <SectionHeading id="nosotros-title" eyebrow={eyebrow} title={title} />
           <div className="mt-6 space-y-5 text-pretty text-base leading-relaxed text-cocoa-600 sm:text-lg">
-            {paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
+            {paragraphs.map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
             ))}
           </div>
-          <p className="mt-8 font-display text-3xl italic text-caramel-600">{signature}</p>
-          <DemoNote className="mt-8">Texto provisorio</DemoNote>
+          {signature && <p className="mt-8 font-display text-3xl italic text-caramel-600">{signature}</p>}
         </Reveal>
       </div>
     </section>

@@ -1,10 +1,10 @@
 import { MessageCircle } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { Reveal } from "@/components/ui/reveal";
-import { ctaContent } from "@/data/content";
+import type { SiteContent } from "@/lib/content/types";
 import { whatsappUrl } from "@/lib/whatsapp";
 
-export function WhatsAppCta() {
+export function WhatsAppCta({ content: ctaContent }: { content: SiteContent["cta"] }) {
   return (
     <section aria-labelledby="cta-title" className="section-space pb-0 md:pb-0">
       <div className="container-page">

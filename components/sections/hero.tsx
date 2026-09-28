@@ -1,11 +1,11 @@
 import { MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { ButtonLink } from "@/components/ui/button-link";
-import { heroContent } from "@/data/content";
+import type { SiteContent } from "@/lib/content/types";
 import { whatsappUrl } from "@/lib/whatsapp";
 
-export function Hero() {
-  const { eyebrow, titleStart, titleAccent, subtitle, image, detailImage } = heroContent;
+export function Hero({ content }: { content: SiteContent["hero"] }) {
+  const { eyebrow, titleStart, titleAccent, subtitle, image, detailImage } = content;
 
   return (
     <section id="inicio" aria-labelledby="hero-title" className="relative isolate bg-cocoa-950 lg:bg-transparent">
@@ -50,8 +50,12 @@ export function Hero() {
             className="mt-6 animate-rise font-display text-[3.25rem] font-medium leading-[0.95] tracking-[-0.025em] [animation-delay:120ms] sm:text-7xl lg:text-[4.75rem] xl:text-[5.75rem]"
           >
             {titleStart}
-            <br />
-            <em className="text-cream-200 lg:text-caramel-600">{titleAccent}</em>
+            {titleAccent && (
+              <>
+                <br />
+                <em className="text-cream-200 lg:text-caramel-600">{titleAccent}</em>
+              </>
+            )}
           </h1>
 
           <p className="mt-6 max-w-md animate-rise text-pretty text-base leading-relaxed text-cream-100/85 [animation-delay:240ms] sm:text-lg lg:text-cocoa-600">

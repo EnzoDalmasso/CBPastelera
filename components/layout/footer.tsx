@@ -1,11 +1,14 @@
 import { MessageCircle } from "lucide-react";
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { InstagramIcon } from "@/components/ui/icons";
-import { business, navLinks } from "@/data/business";
+import { business, credits, navLinks } from "@/data/business";
 import { whatsappUrl } from "@/lib/whatsapp";
 
 const socialLinkClass =
   "flex size-11 items-center justify-center rounded-full border border-cream-50/15 text-cream-100 transition-colors hover:border-cream-50/40 hover:bg-cream-50/5";
+
+const creditLinkClass =
+  "text-cream-100/80 underline decoration-cream-100/30 underline-offset-4 transition-colors hover:text-cream-50 hover:decoration-cream-50";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -57,14 +60,17 @@ export function Footer() {
           <p>
             © {year} {business.name}. Todos los derechos reservados.
           </p>
-          <p>Sitio desarrollado por Infinity Code</p>
-        </div>
-
-        {business.showDemoNotice && (
-          <p className="mt-4 text-xs text-cream-100/55">
-            Versión demo: las fotografías son imágenes de referencia (Unsplash) y los textos son provisorios.
+          <p>
+            Sitio desarrollado por{" "}
+            <a href={credits.author.url} target="_blank" rel="noopener noreferrer" className={creditLinkClass}>
+              {credits.author.name}
+            </a>{" "}
+            -{" "}
+            <a href={credits.studio.url} target="_blank" rel="noopener noreferrer" className={creditLinkClass}>
+              {credits.studio.name}
+            </a>
           </p>
-        )}
+        </div>
       </div>
     </footer>
   );

@@ -1,21 +1,8 @@
-import type { CategoryId } from "@/data/categories";
+import type { Product } from "@/lib/content/types";
 import { tempPhoto } from "@/lib/images";
-import type { ImageAsset } from "@/lib/types";
-
-export type Product = {
-  id: string;
-  name: string;
-  category: CategoryId;
-  description: string;
-  image: ImageAsset;
-  /** En pesos argentinos. `null` muestra "Precio a consultar". */
-  price: number | null;
-};
 
 /**
- * PRODUCTOS DE EJEMPLO — reemplazar por los productos, textos, precios y fotos reales.
- * Para usar una foto propia: guardarla en /public/images/products y usar
- * image: { src: "/images/products/nombre.webp", alt: "Descripción de la foto" }
+ * Productos iniciales (de ejemplo). Una vez configurado Supabase, se editan desde /admin.
  */
 export const products: Product[] = [
   {

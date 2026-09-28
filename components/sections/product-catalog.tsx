@@ -3,26 +3,23 @@
 import { useState } from "react";
 import { ProductCard } from "@/components/sections/product-card";
 import { RevealItem, RevealList } from "@/components/ui/reveal";
-import { categoryName, type Category, type CategoryId } from "@/data/categories";
-import type { Product } from "@/data/products";
+import type { Category, Product } from "@/lib/content/types";
 import { cn } from "@/lib/cn";
 
-type Filter = CategoryId | "todos";
+const ALL = "__todos";
 
 type ProductCatalogProps = {
   products: Product[];
-  categories: readonly Category[];
+  categories: Category[];
 };
 
 export function ProductCatalog({ products, categories }: ProductCatalogProps) {
-  const [filter, setFilter] = useState<Filter>("todos");
+  const [filter, setFilter] = useState<string>(ALL);
   const visibleProducts =
-    filter === "todos" ? products : products.filter((product) => product.category === filter);
+    filter === ALL ? products : products.filter((product) => product.category === filter);
 
-  const filters: Array<{ id: Filter; name: string }> = [
-    { id: "todos", name: "Todos" },
-    ...categories,
-  ];
+  const filters = [{ id: ALL, name: "Todos" }, ...categories];
+  const categoryName = (id: string) => categories.find((category) => category.id === id)?.name ?? "";
 
   return (
     <div className="mt-12 lg:mt-16">
@@ -54,7 +51,7 @@ export function ProductCatalog({ products, categories }: ProductCatalogProps) {
 
       <p className="sr-only" aria-live="polite">
         {visibleProducts.length} productos
-        {filter !== "todos" && ` en ${categoryName(filter)}`}
+        {filter !== ALL && ` en ${categoryName(filter)}`}
       </p>
 
       <RevealList
@@ -63,7 +60,7 @@ export function ProductCatalog({ products, categories }: ProductCatalogProps) {
       >
         {visibleProducts.map((product) => (
           <RevealItem key={product.id}>
-            <ProductCard product={product} />
+            <ProductCard product={product} categoryName={categoryName(product.category)} />
           </RevealItem>
         ))}
       </RevealList>
