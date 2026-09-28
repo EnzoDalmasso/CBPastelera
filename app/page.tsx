@@ -12,11 +12,19 @@ import { WhatsAppCta } from "@/components/sections/whatsapp-cta";
 import { getSiteContent } from "@/lib/content/get-content";
 import { bakeryJsonLd } from "@/lib/structured-data";
 
+/** Al recargar, siempre arranca arriba: sin restaurar el scroll ni saltar al #ancla de la URL. */
+const startAtTopScript = `
+history.scrollRestoration = "manual";
+if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+window.scrollTo(0, 0);
+`;
+
 export default async function HomePage() {
   const content = await getSiteContent();
 
   return (
     <>
+      <script dangerouslySetInnerHTML={{ __html: startAtTopScript }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
