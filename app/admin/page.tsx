@@ -33,10 +33,7 @@ export default async function AdminPage() {
       return <AdminEditor initialContent={defaultContent} previewOnly />;
     }
     return (
-      <AdminNotice title="Panel no configurado">
-        Faltan las variables <code>NEXT_PUBLIC_SUPABASE_URL</code> y <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
-        Seguí los pasos del README para conectar Supabase.
-      </AdminNotice>
+      <AdminNotice title="Panel no disponible">El panel todavía no está habilitado.</AdminNotice>
     );
   }
 
