@@ -1,80 +1,62 @@
-# CB Pastelera — sitio web
+# CB Pastelera
 
-Sitio one-page para **CB Pastelera** (pastelería artesanal) con **panel de administración** en `/admin`, desde el que la dueña edita textos, productos, categorías y fotos, también desde el celular.
+Web para CB Pastelera, una pastelería artesanal de Las Parejas (Santa Fe). Es una one-page sin carrito: muestra los productos y manda las consultas a WhatsApp, porque así trabaja hoy la dueña y no tenía sentido meter un checkout.
 
-**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Motion · Supabase (Auth, Postgres y Storage) · Vercel
+Además tiene un panel en `/admin` para que ella cambie textos, productos y fotos desde el celular sin depender de mí.
 
-## Uso
+Next.js 16 (App Router), TypeScript, Tailwind 4, Motion para las animaciones y Supabase para auth, base de datos y storage. Deploy en Vercel.
+
+## Correrlo local
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
-npm run build
-npm start
-npm run lint
-npm run typecheck
+npm run dev
 ```
 
-Requiere Node.js 20.9 o superior. Sin Supabase configurado, el sitio funciona con el contenido inicial de `data/` y `/admin` se abre en modo vista previa (solo en desarrollo, sin guardar).
+Con Node 20.9 o más nuevo. `npm run lint` y `npm run typecheck` están separados del build.
 
-## Configurar Supabase (una sola vez)
+Sin variables de entorno el sitio levanta igual con el contenido de `data/`, y `/admin` se abre en modo vista previa (se puede navegar pero no guarda). Lo dejé así para poder trabajar en el diseño sin tocar la base.
 
-1. Crear un proyecto en [supabase.com](https://supabase.com).
-2. **SQL Editor → New query**: pegar el contenido de [`supabase/schema.sql`](supabase/schema.sql) y ejecutarlo. Crea la tabla del contenido, la tabla de administradores, el bucket de fotos `site-images` y las reglas de seguridad (RLS).
-3. **Authentication → Sign In / Providers → Email**: desactivar **Allow new users to sign up**, para que nadie más pueda crearse una cuenta.
-4. **Authentication → Users → Add user**: crear el usuario de la dueña (email y contraseña, con *Auto Confirm User*).
-5. Darle permisos de edición, en el SQL Editor:
+## Cómo está armado el contenido
+
+Todo lo editable vive en una sola fila de la tabla `site_content`, como JSON. Lo pensé un rato y para un sitio de una página con un solo usuario editando, armar tablas para productos, categorías y galería era complicarse por nada; con un JSON validado alcanza y el panel guarda todo de una vez.
+
+La validación está en `lib/content/parse.ts` y corre en el servidor antes de cada guardado: largos máximos, links que tienen que ser `https://`, productos con categorías que existan. Si algo viene mal de la base, el sitio cae al contenido por defecto en vez de romperse.
+
+La home se genera estática. Cuando se guarda desde el panel, la server action llama a `updateTag` y `revalidatePath("/")`, así que el cambio aparece enseguida sin rebuild.
+
+Las fotos se achican en el navegador antes de subir (máximo 2000 px, WebP). Las del celular pesan varios MB y no quería que la dueña esperara una subida de 8 MB con 4G.
+
+Los permisos los resuelve Supabase con RLS: cualquiera puede leer el contenido, pero solo escriben los usuarios que están en la tabla `admins`. El panel igual chequea la sesión en el servidor antes de guardar.
+
+## Supabase
+
+1. Crear el proyecto y correr `supabase/schema.sql` en el SQL Editor. Crea las tablas, el bucket `site-images` y las policies.
+2. En Authentication, desactivar el registro de usuarios nuevos y crear a mano el usuario de la dueña.
+3. Darle permisos:
    ```sql
    insert into public.admins (user_id)
-   select id from auth.users where email = 'email-de-la-duena@ejemplo.com';
+   select id from auth.users where email = 'mail@ejemplo.com';
    ```
-6. **Project Settings → API**: copiar la *Project URL* y la clave *anon public* (o *publishable*) en las variables de entorno:
-   - Local: copiar `.env.example` a `.env.local` y completar.
-   - Vercel: **Settings → Environment Variables**, y después **Redeploy**.
+4. Cargar `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` (la anon o la publishable, nunca la service role) en `.env.local` y en Vercel. Hay un `.env.example` de referencia; `NEXT_PUBLIC_SITE_URL` es opcional y sirve para el canonical y el sitemap cuando haya dominio propio.
 
-| Variable | Valor |
-| --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clave anon/publishable (nunca la `service_role`/secret) |
-| `NEXT_PUBLIC_SITE_URL` | Opcional: dominio definitivo |
+## Cosas que quedaron pendientes
 
-## Panel de administración
-
-`https://tu-dominio/admin` → iniciar sesión con el usuario de la dueña.
-
-- Secciones: Portada, Propuesta, Productos (categorías y productos), Galería, Nosotros, Pedidos, Instagram y Contacto (incluida la ubicación).
-- Las fotos se eligen desde la galería o la cámara del celular, se comprimen en el navegador (máx. 2000 px, WebP) y se suben a Supabase Storage.
-- **Guardar cambios** actualiza el sitio publicado al instante.
-- La primera vez que se guarda, el contenido inicial de `data/` pasa a Supabase. Desde ese momento, lo que manda es lo guardado en el panel.
-
-**Instagram:** Instagram no permite mostrar el feed sin su API oficial (requiere cuenta profesional y un token de Meta). Por eso la dueña sube las fotos de sus publicaciones desde el panel y, si quiere, pega el link de cada post.
-
-## Contenido inicial y datos fijos
-
-| Archivo | Contenido |
-| --- | --- |
-| `data/business.ts` | Nombre, WhatsApp, Instagram, links del menú y créditos (no se editan desde el panel) |
-| `data/default-content.ts` | Textos y fotos iniciales de cada sección |
-| `data/products.ts`, `data/categories.ts`, `data/gallery.ts` | Productos, categorías y fotos iniciales |
-
-Las fotos iniciales son imágenes de referencia de Unsplash y no pertenecen a CB Pastelera: se reemplazan desde el panel.
+- Instagram no deja traer el feed sin la Graph API, que pide cuenta profesional y un token de Meta. Por ahora la dueña sube las fotos de sus posts a mano desde el panel y puede pegar el link de cada uno.
+- Las fotos que están ahora son de Unsplash, de referencia, hasta que tenga las propias.
+- Cuando se reemplaza una foto, la vieja queda en el bucket. Con el volumen que va a tener no es un problema, pero en algún momento conviene limpiar.
 
 ## Estructura
 
 ```
-app/               página, SEO, /admin (panel, login y server actions)
-components/
-  admin/           editor del panel
-  layout/          navbar, menú mobile, footer, botón de WhatsApp
-  sections/        secciones del sitio
-  ui/              piezas reutilizables
-data/              datos fijos y contenido inicial
-lib/
-  content/         tipos, validación y lectura del contenido
-  supabase/        clientes de Supabase
-  admin/           sesión, subida de fotos y helpers del panel
-proxy.ts           mantiene la sesión del panel
-supabase/          esquema SQL
+app/            home, SEO y /admin (login, panel, server actions)
+components/     admin/, layout/, sections/ y ui/
+data/           datos fijos de la marca y contenido inicial
+lib/            contenido, clientes de Supabase y helpers del panel
+supabase/       schema.sql
+proxy.ts        refresca la sesión en /admin
 ```
 
-Sitio desarrollado por [Enzo Dalmasso](https://porfolio-enzo-dalmasso.vercel.app/) - [Infinity Code](https://web-coorporativa-infinity-code.vercel.app/).
+---
+
+Hecho por [Enzo Dalmasso](https://porfolio-enzo-dalmasso.vercel.app/) · [Infinity Code](https://web-coorporativa-infinity-code.vercel.app/)
