@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { isSupabaseConfigured, supabaseConfig } from "@/lib/supabase/config";
+import { isSupabaseConfigured, sessionCookieOptions, supabaseConfig } from "@/lib/supabase/config";
 
 /** Mantiene viva la sesión de Supabase en el panel /admin. */
 export async function proxy(request: NextRequest) {
@@ -8,6 +8,7 @@ export async function proxy(request: NextRequest) {
   if (!isSupabaseConfigured) return response;
 
   const supabase = createServerClient(supabaseConfig.url, supabaseConfig.anonKey, {
+    cookieOptions: sessionCookieOptions,
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (cookiesToSet) => {

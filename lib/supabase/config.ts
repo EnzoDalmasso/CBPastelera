@@ -5,6 +5,13 @@ export const supabaseConfig = {
 
 export const isSupabaseConfigured = Boolean(supabaseConfig.url && supabaseConfig.anonKey);
 
+/** Cookies de sesión: solo por HTTPS en producción (en localhost no hay HTTPS). */
+export const sessionCookieOptions = {
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  path: "/",
+} as const;
+
 export const IMAGES_BUCKET = "site-images";
 export const CONTENT_TABLE = "site_content";
 export const CONTENT_ROW_ID = 1;

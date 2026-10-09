@@ -1,6 +1,8 @@
 import { createBrowserClient } from "@supabase/ssr";
-import { supabaseConfig } from "@/lib/supabase/config";
+import { sessionCookieOptions, supabaseConfig } from "@/lib/supabase/config";
 
 export function createSupabaseBrowserClient() {
-  return createBrowserClient(supabaseConfig.url, supabaseConfig.anonKey);
+  return createBrowserClient(supabaseConfig.url, supabaseConfig.anonKey, {
+    cookieOptions: sessionCookieOptions,
+  });
 }
